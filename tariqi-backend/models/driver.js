@@ -29,10 +29,9 @@ const driverSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  availabilityStatus: {
-    type: String,
-    enum: ['available', 'busy', 'offline'],
-    default: 'available',
+  inRide: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,

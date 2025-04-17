@@ -10,14 +10,12 @@ const rideSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Client',
   }],
-  pickupLocation: {
-    type: String,
+  route: {
+    type: [
+      { type: [Number], required: true }
+    ],
     required: true,
-  },
-  dropoffLocation: {
-    type: String,
-    required: true,
-  },
+  },  
   availableSeats: {
     type: Number,
     required: true,
@@ -38,8 +36,8 @@ const rideSchema = new mongoose.Schema({
   }],
   createdAt: {
     type: Date,
-    default: Date.now,
-  },
+    default: () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000),
+  }  
 });
 
 const Ride = mongoose.model('Ride', rideSchema);

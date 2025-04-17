@@ -14,10 +14,9 @@ const clientSchema = new mongoose.Schema({
   phoneNumber: {
     type: String,
   },
-  role: {
-    type: String,
-    enum: ['client', 'driver'],
-    default: 'client',
+  inRide: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,
