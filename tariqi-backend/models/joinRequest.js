@@ -13,8 +13,14 @@ const joinRequestSchema = new mongoose.Schema({
   },
   requestedAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now(),
+    // default: () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000),
     expires: 60,
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'accepted', 'rejected'],
+    default: 'pending',
   },
 });
 

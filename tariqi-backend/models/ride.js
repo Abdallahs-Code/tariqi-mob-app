@@ -10,6 +10,14 @@ const rideSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Client',
   }],
+  rejectedClients: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Client' 
+  }],
+  passengersLeft: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Client',
+  }],
   route: {
     type: [
       { type: [Number], required: true }
@@ -36,7 +44,8 @@ const rideSchema = new mongoose.Schema({
   }],
   createdAt: {
     type: Date,
-    default: () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000),
+    default: Date.now(),
+    // default: () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000),
   }  
 });
 

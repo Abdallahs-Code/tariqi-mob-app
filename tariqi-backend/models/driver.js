@@ -2,6 +2,22 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const driverSchema = new mongoose.Schema({
+  firstName: {
+    type: String,
+    required: true,
+  },
+  lastName: {
+    type: String,
+    required: true,
+  },
+  age : {
+    type: Number,
+    required: true,
+  },
+  phoneNumber: {
+    type: String,
+    required: true,
+  },
   email: {
     type: String,
     required: true,
@@ -35,7 +51,8 @@ const driverSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now(),
+    // default: () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000),
   },
 });
 

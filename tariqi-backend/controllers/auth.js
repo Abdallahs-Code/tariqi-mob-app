@@ -3,7 +3,7 @@ const Client = require('../models/client');
 const Driver = require('../models/driver');
 
 const signup = async (req, res) => {
-  const { email, password, role, carDetails, drivingLicense } = req.body;
+  const { firstName, lastName, age, phoneNumber, email, password, role, carDetails, drivingLicense } = req.body;
 
   if (role === 'driver') {
     const existingDriver = await Driver.findOne({ email });
@@ -11,7 +11,7 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: 'Driver already exists' });
     }
 
-    const newDriver = new Driver({ email, password, carDetails, drivingLicense });
+    const newDriver = new Driver({ firstName, lastName, age, phoneNumber, email, password, carDetails, drivingLicense });
     await newDriver.save();
 
     const token = jwt.sign({ id: newDriver._id, role: role }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -24,7 +24,7 @@ const signup = async (req, res) => {
     return res.status(400).json({ message: 'Client already exists' });
   }
 
-  const newClient = new Client({ email, password });
+  const newClient = new Client({ firstName, lastName, age, phoneNumber, email, password });
   await newClient.save();
 
   const token = jwt.sign({ id: newClient._id, role: role }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -54,7 +54,7 @@ const login = async (req, res) => {
 
   const token = jwt.sign({ id: user._id, role: role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-  res.json({ message: 'Login successful', token });
+  res.json({ message: 'Login successful', token, role });
 };
 
 module.exports = { signup, login };

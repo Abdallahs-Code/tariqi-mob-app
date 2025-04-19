@@ -1,20 +1,22 @@
 const express = require('express');
-const { createRide, getRides, requestRide, getPendingRequests, respondToJoinRequest, leaveRide, cancelRide } = require('../controllers/rides');
+const { driverCreateRide, clientGetRides, clientRequestRide, driverGetPendingRequests, driverRespondToRequest, clientGetRequestStatus, clientEndRide, driverEndRide } = require('../controllers/rides');
 const { protect } = require('../middleware/auth');
 const router = express.Router();
 
-router.post('/create', protect, createRide);
+router.post('/driver/create/ride', protect, driverCreateRide);
 
-router.get('/', protect, getRides);
+router.get('/client/get/rides', protect, clientGetRides);
 
-router.post('/request/:rideId', protect, requestRide);
+router.post('/client/request/ride/:rideId', protect, clientRequestRide);
 
-router.get('/pending/:rideId', protect, getPendingRequests);
+router.get('/driver/get/pending/requests/:rideId', protect, driverGetPendingRequests);
 
-router.post('/respond/:requestId', protect, respondToJoinRequest);
+router.post('/driver/respond/to/requests/:requestId', protect, driverRespondToRequest);
 
-router.post('/leave/:rideId', protect, leaveRide);
+router.get('/client/get/request/status/:requestId', protect, clientGetRequestStatus);
 
-router.post('/cancel/:rideId', protect, cancelRide);
+router.post('/client/end/ride/:rideId', protect, clientEndRide);
+
+router.post('/driver/end/ride/:rideId', protect, driverEndRide);
 
 module.exports = router;

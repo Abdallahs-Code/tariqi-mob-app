@@ -3,7 +3,7 @@ const Driver = require('../models/driver');
 const Client = require('../models/client');
 const JoinRequest = require('../models/joinRequest');
 
-const createRide = async (req, res) => {
+const driverCreateRide = async (req, res) => {
   try {
     if (req.user.role !== 'driver') {
       return res.status(403).json({ message: 'Only drivers can create rides' });
@@ -38,8 +38,12 @@ const createRide = async (req, res) => {
   }
 };
 
-const getRides = async (req, res) => {
+const clientGetRides = async (req, res) => {
   try {
+    if (req.user.role === 'driver') {
+      return res.status(403).json({ message: 'Drivers cannot view rides' });
+    }
+
     const { pickupLocation, dropoffLocation } = req.body; // i will use them later for ride matching
 
     const rides = await Ride.find();
@@ -50,10 +54,10 @@ const getRides = async (req, res) => {
   }
 };
 
-const requestRide = async (req, res) => {
+const clientRequestRide = async (req, res) => {
   try {
     if (req.user.role === 'driver') {
-      return res.status(403).json({ message: 'Drivers cannot join rides' });
+      return res.status(403).json({ message: 'Drivers cannot request rides' });
     }
 
     const rideId = req.params.rideId;
@@ -65,6 +69,10 @@ const requestRide = async (req, res) => {
 
     if (ride.rejectedClients.includes(clientId)) {
       return res.status(400).json({ message: 'You have already been rejected for this ride' });
+    }
+
+    if (ride.passengersLeft.includes(clientId)) {
+      return res.status(400).json({ message: 'You have already left this ride' });
     }
 
     if (ride.passengers.includes(clientId)) {
@@ -100,7 +108,7 @@ const requestRide = async (req, res) => {
   }
 };
 
-const getPendingRequests = async (req, res) => {
+const driverGetPendingRequests = async (req, res) => {
   try {
     if (req.user.role !== 'driver') {
       return res.status(403).json({ message: 'Only drivers can view pending requests' });
@@ -109,7 +117,8 @@ const getPendingRequests = async (req, res) => {
     const rideId = req.params.rideId;
 
     const pendingRequests = await JoinRequest.find({ 
-      ride: rideId
+      ride: rideId,
+      status: 'pending'
     });
 
     res.status(200).json(pendingRequests);
@@ -119,7 +128,7 @@ const getPendingRequests = async (req, res) => {
   }
 };
 
-const respondToJoinRequest = async (req, res) => {
+const driverRespondToRequest = async (req, res) => {
   try {
     if (req.user.role !== 'driver') {
       return res.status(403).json({ message: 'Only drivers can respond to join ride requests' });
@@ -153,19 +162,21 @@ const respondToJoinRequest = async (req, res) => {
       ride.availableSeats -= 1;
 
       const client = await Client.findById(joinRequest.client);
-
       if (!client) return res.status(404).json({ message: 'Client not found' });
 
       client.inRide = true;
       await client.save();
-    }
-    else {
+
+      joinRequest.status = 'accepted';
+    } else {
       ride.rejectedClients.push(joinRequest.client);
+      joinRequest.status = 'rejected';
     }
+
+    joinRequest.requestedAt = null;
 
     await ride.save();
-
-    await JoinRequest.findByIdAndDelete(requestId);
+    await joinRequest.save();
 
     res.status(200).json({ message: `Join request ${status}ed` });
   } catch (err) {
@@ -174,7 +185,28 @@ const respondToJoinRequest = async (req, res) => {
   }
 };
 
-const leaveRide = async (req, res) => {
+const clientGetRequestStatus = async (req, res) => {
+  try {
+    if (req.user.role !== 'client') {
+      return res.status(403).json({ message: 'Only clients can access this route' });
+    }
+
+    const requestId = req.params.requestId;
+
+    const joinRequest = await JoinRequest.findById(requestId);
+
+    if (!joinRequest) {
+      return res.status(404).json({ message: 'Join request has timed out' });
+    }
+
+    res.status(200).json({ status: joinRequest.status });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const clientEndRide = async (req, res) => {
   try {
     if (req.user.role !== 'client') {
       return res.status(403).json({ message: 'Only clients can leave rides' });
@@ -196,10 +228,14 @@ const leaveRide = async (req, res) => {
     ride.passengers = ride.passengers.filter(passenger => passenger.toString() !== client._id.toString());
     ride.availableSeats += 1;
 
+    ride.passengersLeft.push(req.user.id);
+
     client.inRide = false;
 
     await ride.save();
     await client.save();
+
+    await JoinRequest.deleteMany({ ride: ride_id, client: client._id });
 
     res.status(200).json({ message: 'Left the ride successfully' });
   } catch (err) {
@@ -208,7 +244,7 @@ const leaveRide = async (req, res) => {
   }
 };
 
-const cancelRide = async (req, res) => {
+const driverEndRide = async (req, res) => {
   try {
     if (req.user.role !== 'driver') {
       return res.status(403).json({ message: 'Only drivers can cancel rides' });
@@ -238,9 +274,11 @@ const cancelRide = async (req, res) => {
     driver.inRide = false;
     await driver.save();
 
+    await JoinRequest.deleteMany({ ride: ride_id });
+
     await Ride.findByIdAndDelete(ride_id);
 
-    res.status(200).json({ message: 'Ride canceled successfully' });
+    res.status(200).json({ message: 'Ride ended successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -248,11 +286,12 @@ const cancelRide = async (req, res) => {
 };
 
 module.exports = {
-  createRide,
-  getRides,
-  requestRide,
-  getPendingRequests,
-  respondToJoinRequest,
-  leaveRide,
-  cancelRide,
+  driverCreateRide,
+  clientGetRides,
+  clientRequestRide,
+  driverGetPendingRequests,
+  driverRespondToRequest,
+  clientGetRequestStatus,
+  clientEndRide,
+  driverEndRide,
 };
