@@ -20,31 +20,30 @@ const rideSchema = new mongoose.Schema({
   }],
   route: {
     type: [
-      { type: [Number], required: true }
+      {
+        lat: { type: Number, required: true },
+        lng: { type: Number, required: true }
+      }
     ],
     required: true,
+    _id: false 
   },  
   availableSeats: {
     type: Number,
     required: true,
     min: 1,
   },
-  rideStatus: {
-    type: String,
-    enum: ['scheduled', 'in-progress', 'completed', 'canceled'],
-    default: 'scheduled',
-  },
-  rideTime: {
-    type: Date,
-    required: true,
-  },
   rejectedClients: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Client' 
+  }],
+  kickedClients: [{ 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Client' 
   }],
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
     // default: () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000),
   }  
 });

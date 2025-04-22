@@ -28,12 +28,25 @@ const clientSchema = new mongoose.Schema({
     required: true,
   },
   inRide: {
-    type: Boolean,
-    default: false
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Ride',
+    default: null
+  },
+  pickup: {
+    lat: { type: Number, required: false },
+    lng: { type: Number, required: false }
+  },
+  dropoff: {
+    lat: { type: Number, required: false },
+    lng: { type: Number, required: false }
+  },
+  currentLocation: {
+    lat: { type: Number, required: false },
+    lng: { type: Number, required: false }
   },
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
     // default: () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000),
   },
 });

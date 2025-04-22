@@ -16,7 +16,7 @@ const signup = async (req, res) => {
 
     const token = jwt.sign({ id: newDriver._id, role: role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    return res.status(201).json({ message: 'Driver created', token });
+    return res.status(201).json({ message: 'Driver created', token, id: newDriver._id });
   }
 
   const existingClient = await Client.findOne({ email });
@@ -29,7 +29,7 @@ const signup = async (req, res) => {
 
   const token = jwt.sign({ id: newClient._id, role: role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-  return res.status(201).json({ message: 'Client created', token });
+  return res.status(201).json({ message: 'Client created', token, id: newClient._id });
 };
 
 const login = async (req, res) => {
@@ -54,7 +54,7 @@ const login = async (req, res) => {
 
   const token = jwt.sign({ id: user._id, role: role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-  res.json({ message: 'Login successful', token, role });
+  res.json({ message: 'Login successful', token, role, id: user._id });
 };
 
 module.exports = { signup, login };
