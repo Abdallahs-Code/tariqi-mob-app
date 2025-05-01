@@ -19,7 +19,9 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
-    "openrouteservice": "^0.1.2"
+    "openrouteservice": "^0.1.2",
+    "socket.io": "^4.8.1",
+    "stripe": "^18.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
